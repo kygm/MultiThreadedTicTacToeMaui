@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MultiThreadedTicTacToeGui.Views.HomePage"
+             Title="HomePage">
+    <VerticalStackLayout>
+        <Label 
+            Text="Home Page Logic"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" />
+
+        <Editor Placeholder="Temp"
+                Text="{Binding EditorText}" />
+        <Button Text="Process Temp text"
+                Command="{Binding ProcessTextCommand}" />
+        <Label Text="{Binding ProcessTextResult}"
+               IsVisible ="{Binding IsProcessedTextVisible, FallbackValue=false}" />
+    </VerticalStackLayout>
+</ContentPage>

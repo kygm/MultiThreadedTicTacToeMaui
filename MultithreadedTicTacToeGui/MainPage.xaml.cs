@@ -1,24 +1,20 @@
-﻿namespace MultithreadedTicTacToeGui
+﻿using MultiThreadedTicTacToeGui.Views;
+
+namespace MultithreadedTicTacToeGui
 {
     public partial class MainPage : ContentPage
     {
-        int count = 0;
+        private HomePage _homePage;
 
         public MainPage()
         {
             InitializeComponent();
+            Application.Current.UserAppTheme = AppTheme.Light;
         }
 
-        private void OnCounterClicked(object sender, EventArgs e)
+        private async void OnStartButtonClicked(object sender, EventArgs e)
         {
-            count++;
-
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
+            await Navigation.PushAsync(_homePage ?? new HomePage());
         }
     }
 
