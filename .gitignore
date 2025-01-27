@@ -1,0 +1,64 @@
+# Build Folders
+bin/
+obj/
+
+# User-specific files
+*.userprefs
+*.userosscache
+*.suo
+*.sln.docstates
+*.sln.improvements
+
+# Visual Studio specific
+.vs/
+*.dbmdl
+*.log
+
+# .NET specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# macOS specific
+*.DS_Store
+
+# JetBrains Rider specific
+.idea/
+*.sln.iml
+
+# Mobile Platform specific
+*.apk
+*.aab
+*.ipa
+*.dSYM/
+
+# Xcode specific
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+DerivedData/
+*.xcworkspace
+*.xcodeproj/
+*.xcuserstate
+*.plist
+
+# MAUI specific
+platforms/**/bin/
+platforms/**/obj/
+
+# Logs
+*.log
+*.tlog
+*.wrn
+*.err
+
+# Backup files
+*.bak
+*.swp
+*.swm
+
+# Packages
+*.nupkg
+*.snupkg
