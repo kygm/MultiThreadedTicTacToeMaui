@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -11,8 +13,8 @@ namespace MultiThreadedTicTacToeGui.Views
     public class GameBoardVM : ViewModelBase
     {
 
-        private List<KeyValuePair<PlayerType, KeyValuePair<int, int>>> _populatedPlayerMatrix;
-        private List<KeyValuePair<int, int>> _openBoardSlots;
+        private List<KeyValuePair<PlayerType, KeyValuePair<int, int>>> _populatedPlayerMatrix; //WARNING - Beginning index = 1
+        private List<KeyValuePair<int, int>> _openBoardSlots; //WARNING - Beginning index = 1
 
         private List<string> _gameBoardLabels;
         public List<string> GameBoardLabels
@@ -27,6 +29,14 @@ namespace MultiThreadedTicTacToeGui.Views
             get => _isGameRunning;
             set => SetProperty(ref _isGameRunning, value);
         }
+
+        private int _delayBetweenMovesInMilliseconds = 500;
+        public int DelayBetweenMovesInMilliseconds
+        {
+            get => _delayBetweenMovesInMilliseconds;
+            set => SetProperty(ref _delayBetweenMovesInMilliseconds, value);
+        }
+
 
         public GameBoardVM()
         {
@@ -52,20 +62,106 @@ namespace MultiThreadedTicTacToeGui.Views
 
         public async Task StartGame()
         {
-            _isGameRunning = true;
+            IsGameRunning = true;
+            PlayerType currentPlayer;
+
             //First select a randomNumberGenerator player - X or O
             var randomNumberGenerator = new Random();
-            PlayerType startingPlayer = (PlayerType)randomNumberGenerator.Next(2); // Generates either 0 or 1
+            currentPlayer = (PlayerType)randomNumberGenerator.Next(2); // Generates either 0 or 
 
             //Now select a first arbitrary randomNumberGenerator position
-            int initialPosition = randomNumberGenerator.Next(0, 9);
+            int initialPosition = GetNextAvailablePosition();
 
-            while(_isGameRunning)
+            //Load the initial config into the board labels collection
+            GameBoardLabels[initialPosition] = currentPlayer.ToString();
+
+
+            //Main game loop - do threading in here
+            while(IsGameRunning)
             {
-                await Application.Current.MainPage.DisplayAlert("Notice", $"Starting player {startingPlayer.ToString()}, starting position {initialPosition}", "Doge");
-                _isGameRunning = HasGameBeenCompletedCheckState();
+                await Task.Delay(DelayBetweenMovesInMilliseconds);
+
+                //Generate a new random position for the subsequent player
+                currentPlayer = GetNextPlayer(currentPlayer);
+                int nextBoardPosition = GetNextAvailablePosition();
+                //No more available positions
+                if(nextBoardPosition == -1)
+                {
+                    IsGameRunning = false;
+                    await Application.Current.MainPage.DisplayAlert("Notice", "No remaining board slots available", "Ok");
+                    return;
+                }
+
+                GameBoardLabels[nextBoardPosition] = currentPlayer.ToString();
+
+                IsGameRunning = !HasGameBeenCompletedCheckState();
             }
 
+        }
+
+        public void UpdateDelay(int newDelayValue)
+        {
+            DelayBetweenMovesInMilliseconds = newDelayValue;
+        }
+
+        private PlayerType GetNextPlayer(PlayerType currentPlayer)
+        {
+            return (currentPlayer == PlayerType.X) ? PlayerType.O : PlayerType.X;
+        }
+
+        private int GetNextAvailablePosition()
+        {
+            var randomNumberGenerator = new Random();
+            bool isComputedPositionTaken = false;
+            int computedNextPosition = -1;
+            while(_openBoardSlots.Count() != 0 && !isComputedPositionTaken)
+            {
+                computedNextPosition = randomNumberGenerator.Next(0, 9);
+                var flattenedBoardMatrix = FlattenBoardMatrix();
+                if (!flattenedBoardMatrix.Contains(computedNextPosition))
+                {
+                    _openBoardSlots.Remove(GetMatrixPositionFromFlattenedBoardMatrix(computedNextPosition));
+                    return computedNextPosition;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// This takes the board matrix and converts it to a flattened list such that position
+        /// [1,1] => 0, [2,3] -> 5
+        /// </summary>
+        /// <returns></returns>
+        private List<int> FlattenBoardMatrix()
+        {
+            var flattenedBoardMatrix = new List<int>();
+            foreach(var kvp in _populatedPlayerMatrix)//this should be _occupied board slots_ check
+            {
+                switch (kvp.Value.Key)
+                {
+                    case 1: //row 1
+                        flattenedBoardMatrix.Add(kvp.Value.Value);
+                        break;
+                    case 2: //row 2
+                        flattenedBoardMatrix.Add(kvp.Value.Value + 3);
+                        break;
+                    case 3:
+                        flattenedBoardMatrix.Add(kvp.Value.Value + 6);
+                        break;
+                }
+            }
+
+            return flattenedBoardMatrix;
+        }
+
+        //TEST THIS METHOD! UNTESTED!
+        private KeyValuePair<int, int> GetMatrixPositionFromFlattenedBoardMatrix(int index)
+        {
+            // Map the index to matrix position [row, column]
+            int row = (index / 3) + 1;
+            int col = (index % 3) + 1;
+            return new KeyValuePair<int, int>(row, col);
         }
 
         /// <summary>

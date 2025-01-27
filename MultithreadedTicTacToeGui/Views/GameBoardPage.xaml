@@ -8,7 +8,6 @@
             <!-- Top Section for Selection -->
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
-            <!-- Game Board occupies at least 50% of the screen -->
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -18,10 +17,27 @@
         </Grid.ColumnDefinitions>
 
         <!-- Player Selection -->
-        <Grid Grid.Column="1" Grid.Row="1">
-            <Button Text="Press to start game" 
+        <Grid Grid.Row="1" Grid.ColumnSpan="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            
+            <Button Grid.Column="0" 
+                    Margin="10"
+                    Text="Press to start game" 
                     Clicked="OnStartGamePressed"/> <!--This will eventually be bound to a string to display 
             whether the user wants to restart the game once the result is announced-->
+                
+            <Label Grid.Column="2" VerticalTextAlignment="Center" 
+                   HorizontalTextAlignment="End" Text="{Binding DelayBetweenMovesInMilliseconds, 
+                StringFormat='Delay: {0} Milliseconds'}" 
+                   FontSize="20" FontAttributes="Bold"/>
+            <Slider Margin="10" Grid.Column="3" Minimum="200" Maximum="3000" 
+                    Value="500" ValueChanged="Slider_ValueChanged"/>
+
         </Grid>
 
         <!-- Tic Tac Toe Game Board -->
