@@ -19,7 +19,8 @@
 
         <!-- Player Selection -->
         <Grid Grid.Column="1" Grid.Row="1">
-            <Button Text="Press to start game" /> <!--This will eventually be bound to a string to display 
+            <Button Text="Press to start game" 
+                    Clicked="OnStartGamePressed"/> <!--This will eventually be bound to a string to display 
             whether the user wants to restart the game once the result is announced-->
         </Grid>
 
