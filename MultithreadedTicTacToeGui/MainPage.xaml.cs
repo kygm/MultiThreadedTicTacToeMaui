@@ -4,7 +4,7 @@ namespace MultithreadedTicTacToeGui
 {
     public partial class MainPage : ContentPage
     {
-        private HomePage _homePage;
+        private GameBoardPage _gameBoardPage;
 
         public MainPage()
         {
@@ -14,7 +14,7 @@ namespace MultithreadedTicTacToeGui
 
         private async void OnStartButtonClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(_homePage ?? new HomePage());
+            await Navigation.PushAsync(_gameBoardPage ?? new GameBoardPage());
         }
     }
 

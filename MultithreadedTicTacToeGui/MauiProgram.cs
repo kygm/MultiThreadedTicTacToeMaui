@@ -16,8 +16,8 @@ namespace MultithreadedTicTacToeGui
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             }).UseMauiCommunityToolkit();
 
-            builder.Services.AddSingleton<HomePage>();
-            builder.Services.AddSingleton<HomePageVM>();
+            builder.Services.AddSingleton<GameBoardPage>();
+            builder.Services.AddSingleton<GameBoardVM>();
             //App Build Command: 
             //dotnet publish -f net7.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x64 -p:WindowsPackageType=None
 #if DEBUG

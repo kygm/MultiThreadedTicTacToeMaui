@@ -4,30 +4,34 @@
              x:Class="MultithreadedTicTacToeGui.MainPage">
 
     <ScrollView>
-        <VerticalStackLayout
-        Spacing="25"
-        Padding="30,0"
-        VerticalOptions="Center">
-
-            <Image
-            Source="dotnet_bot.png"
-            SemanticProperties.Description="Cute dot net bot waving hi to you!"
-            HeightRequest="200"
-            HorizontalOptions="Center" />
+        <Grid Padding="30,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
 
             <Label
-            Text="Tax Calcualator"
-            SemanticProperties.HeadingLevel="Level1"
-            FontSize="32"
-            HorizontalOptions="Center" />
+                Grid.Row="0"
+                Text="Tic Tac Toe - Multi Threaded"
+                SemanticProperties.HeadingLevel="Level1"
+                FontSize="32"
+                HorizontalOptions="Center" />
+            <Label
+                Grid.Row="1"
+                Text="Created by Kevin Gutierrez and Cha Vue for CSCI 310 Intro to Operating Systems"
+                FontSize="20"
+                HorizontalOptions="Center" />
 
             <Button
-            x:Name="StartAppButton"
-            Text="Start App"
-            Clicked="OnStartButtonClicked"
-            HorizontalOptions="Center" />
+                Margin="100"
+                Grid.Row="2"
+                x:Name="StartAppButton"
+                Text="Start App"
+                Clicked="OnStartButtonClicked"
+                HorizontalOptions="Center" />
 
-        </VerticalStackLayout>
+        </Grid>
     </ScrollView>
 
 </ContentPage>
