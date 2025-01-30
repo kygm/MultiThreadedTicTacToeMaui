@@ -89,33 +89,33 @@
                      WidthRequest="3" />
 
             <!-- Row 1-->
-            <Button Grid.Row="0" Grid.Column="0" Text="{Binding GameBoardLabels[0]}" TextColor="Red" 
+            <Button Grid.Row="0" Grid.Column="0" Text="{Binding R1C1}" TextColor="Red" 
                     FontSize="50" Background="White" />
 
-            <Button Grid.Row="0" Grid.Column="2" Text="{Binding GameBoardLabels[1]}" TextColor="Red"  
+            <Button Grid.Row="0" Grid.Column="2" Text="{Binding R1C2}" TextColor="Red"  
                     FontSize="50" Background="White" />
 
-            <Button Grid.Row="0" Grid.Column="4" Text="{Binding GameBoardLabels[2]}" TextColor="Red" 
+            <Button Grid.Row="0" Grid.Column="4" Text="{Binding R1C3}" TextColor="Red" 
                     FontSize="50" Background="White" />
             
             <!-- Row 2 -->
-            <Button Grid.Row="2" Grid.Column="0" Text="{Binding GameBoardLabels[3]}" TextColor="Red" 
+            <Button Grid.Row="2" Grid.Column="0" Text="{Binding R2C1}" TextColor="Red" 
                     FontSize="50" Background="White" />
 
-            <Button Grid.Row="2" Grid.Column="2" Text="{Binding GameBoardLabels[4]}" TextColor="Red" 
+            <Button Grid.Row="2" Grid.Column="2" Text="{Binding R2C2}" TextColor="Red" 
                     FontSize="50" Background="White" />
 
-            <Button Grid.Row="2" Grid.Column="4" Text="{Binding GameBoardLabels[5]}" TextColor="Red" 
+            <Button Grid.Row="2" Grid.Column="4" Text="{Binding R2C3}" TextColor="Red" 
                     FontSize="50" Background="White" />
 
             <!-- Row 3 -->
-            <Button Grid.Row="4" Grid.Column="0" Text="{Binding GameBoardLabels[6]}" TextColor="Red" 
+            <Button Grid.Row="4" Grid.Column="0" Text="{Binding R3C1}" TextColor="Red" 
                     FontSize="50" Background="White" />
 
-            <Button Grid.Row="4" Grid.Column="2" Text="{Binding GameBoardLabels[7]}" TextColor="Red" 
+            <Button Grid.Row="4" Grid.Column="2" Text="{Binding R3C2}" TextColor="Red" 
                     FontSize="50" Background="White" />
 
-            <Button Grid.Row="4" Grid.Column="4" Text="{Binding GameBoardLabels[8]}" TextColor="Red" 
+            <Button Grid.Row="4" Grid.Column="4" Text="{Binding R3C3}" TextColor="Red" 
                     FontSize="50" Background="White" />
             
         </Grid>

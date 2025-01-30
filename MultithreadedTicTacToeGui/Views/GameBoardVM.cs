@@ -1,27 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using MultiThreadedTicTacToeGui.ViewModels;
+﻿using MultiThreadedTicTacToeGui.ViewModels;
+using System.Collections.ObjectModel;
 
 namespace MultiThreadedTicTacToeGui.Views
 {
     public class GameBoardVM : ViewModelBase
     {
+        //WARNING - Beginning index = 1
+        private List<KeyValuePair<PlayerType, KeyValuePair<int, int>>> _populatedPlayerMatrix = new List<KeyValuePair<PlayerType, KeyValuePair<int, int>>>(); 
+        private List<KeyValuePair<int, int>> _openBoardSlots = new List<KeyValuePair<int, int>>(); 
 
-        private List<KeyValuePair<PlayerType, KeyValuePair<int, int>>> _populatedPlayerMatrix; //WARNING - Beginning index = 1
-        private List<KeyValuePair<int, int>> _openBoardSlots; //WARNING - Beginning index = 1
-
-        private List<string> _gameBoardLabels;
+        private List<string> _gameBoardLabels = new List<string>();
         public List<string> GameBoardLabels
         {
             get => _gameBoardLabels;
             set => SetProperty(ref _gameBoardLabels, value);
         }
+
+        public string R1C1 => GameBoardLabels[0];
+        public string R1C2 => GameBoardLabels[1];
+        public string R1C3 => GameBoardLabels[2];
+        public string R2C1 => GameBoardLabels[3];
+        public string R2C2 => GameBoardLabels[4];
+        public string R2C3 => GameBoardLabels[5];
+        public string R3C1 => GameBoardLabels[6];
+        public string R3C2 => GameBoardLabels[7];
+        public string R3C3 => GameBoardLabels[8];
 
         private bool _isGameRunning = false;
         public bool IsGameRunning
@@ -45,9 +48,9 @@ namespace MultiThreadedTicTacToeGui.Views
 
         void InitializeGameBoard()
         {
-            _openBoardSlots = new List<KeyValuePair<int, int>>();
-            _populatedPlayerMatrix = new List<KeyValuePair<PlayerType, KeyValuePair<int, int>>>();
-            _gameBoardLabels = new List<string>();
+            _openBoardSlots.Clear();
+            _populatedPlayerMatrix.Clear();
+            GameBoardLabels.Clear();
 
             //Fill open board slots list and board labels list
             for(int rowIndex = 1; rowIndex <= 3; rowIndex++)
@@ -63,6 +66,9 @@ namespace MultiThreadedTicTacToeGui.Views
         public async Task StartGame()
         {
             IsGameRunning = true;
+
+            InitializeGameBoard();
+
             PlayerType currentPlayer;
 
             //First select a randomNumberGenerator player - X or O
@@ -74,10 +80,13 @@ namespace MultiThreadedTicTacToeGui.Views
 
             //Load the initial config into the board labels collection
             GameBoardLabels[initialPosition] = currentPlayer.ToString();
+            PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(initialPosition, currentPlayer);
+            UpdateRowColumnLabels();
 
+            
 
             //Main game loop - do threading in here
-            while(IsGameRunning)
+            while (IsGameRunning)
             {
                 await Task.Delay(DelayBetweenMovesInMilliseconds);
 
@@ -91,8 +100,13 @@ namespace MultiThreadedTicTacToeGui.Views
                     await Application.Current.MainPage.DisplayAlert("Notice", "No remaining board slots available", "Ok");
                     return;
                 }
+                else
+                {
+                    GameBoardLabels[nextBoardPosition] = currentPlayer.ToString();
+                    PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(nextBoardPosition, currentPlayer);
 
-                GameBoardLabels[nextBoardPosition] = currentPlayer.ToString();
+                    UpdateRowColumnLabels(); //Need to invoke this for the UI to update
+                }
 
                 IsGameRunning = !HasGameBeenCompletedCheckState();
             }
@@ -104,6 +118,27 @@ namespace MultiThreadedTicTacToeGui.Views
             DelayBetweenMovesInMilliseconds = newDelayValue;
         }
 
+        private void PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(int nextBoardPosition, PlayerType currentPlayer )
+        {
+            _populatedPlayerMatrix.Add(new KeyValuePair<PlayerType, KeyValuePair<int, int>>
+                (currentPlayer, GetMatrixPositionFromFlattenedBoardMatrixIndex(nextBoardPosition)));
+
+            _openBoardSlots.Remove(GetMatrixPositionFromFlattenedBoardMatrixIndex(nextBoardPosition));
+        }
+
+        public void UpdateRowColumnLabels()
+        {
+            OnPropertyChanged(nameof(R1C1));
+            OnPropertyChanged(nameof(R1C2));
+            OnPropertyChanged(nameof(R1C3));
+            OnPropertyChanged(nameof(R2C1));
+            OnPropertyChanged(nameof(R2C2));
+            OnPropertyChanged(nameof(R2C3));
+            OnPropertyChanged(nameof(R3C1));
+            OnPropertyChanged(nameof(R3C2));
+            OnPropertyChanged(nameof(R3C3));
+        }
+
         private PlayerType GetNextPlayer(PlayerType currentPlayer)
         {
             return (currentPlayer == PlayerType.X) ? PlayerType.O : PlayerType.X;
@@ -112,15 +147,13 @@ namespace MultiThreadedTicTacToeGui.Views
         private int GetNextAvailablePosition()
         {
             var randomNumberGenerator = new Random();
-            bool isComputedPositionTaken = false;
             int computedNextPosition = -1;
-            while(_openBoardSlots.Count() != 0 && !isComputedPositionTaken)
+            while(_openBoardSlots.Count() != 0)
             {
                 computedNextPosition = randomNumberGenerator.Next(0, 9);
                 var flattenedBoardMatrix = FlattenBoardMatrix();
                 if (!flattenedBoardMatrix.Contains(computedNextPosition))
                 {
-                    _openBoardSlots.Remove(GetMatrixPositionFromFlattenedBoardMatrix(computedNextPosition));
                     return computedNextPosition;
                 }
             }
@@ -141,22 +174,26 @@ namespace MultiThreadedTicTacToeGui.Views
                 switch (kvp.Value.Key)
                 {
                     case 1: //row 1
-                        flattenedBoardMatrix.Add(kvp.Value.Value);
+                        flattenedBoardMatrix.Add(kvp.Value.Value - 1);
                         break;
                     case 2: //row 2
-                        flattenedBoardMatrix.Add(kvp.Value.Value + 3);
+                        flattenedBoardMatrix.Add(kvp.Value.Value + 2);
                         break;
                     case 3:
-                        flattenedBoardMatrix.Add(kvp.Value.Value + 6);
+                        flattenedBoardMatrix.Add(kvp.Value.Value + 5);
                         break;
                 }
             }
-
+            flattenedBoardMatrix.Sort();
             return flattenedBoardMatrix;
         }
 
-        //TEST THIS METHOD! UNTESTED!
-        private KeyValuePair<int, int> GetMatrixPositionFromFlattenedBoardMatrix(int index)
+        /// <summary>
+        /// This assumes a zero indexed flattened board matrix
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns>A 1 indexed KeyValuePair representing a row, column index</returns>
+        private KeyValuePair<int, int> GetMatrixPositionFromFlattenedBoardMatrixIndex(int index)
         {
             // Map the index to matrix position [row, column]
             int row = (index / 3) + 1;
