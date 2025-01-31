@@ -18,6 +18,7 @@ namespace MultiThreadedTicTacToeGui.Views
             set => SetProperty(ref _gameBoardLabels, value);
         }
 
+        #region Row Column Game Labels
         public string R1C1 => GameBoardLabels[0];
         public string R1C2 => GameBoardLabels[1];
         public string R1C3 => GameBoardLabels[2];
@@ -27,6 +28,61 @@ namespace MultiThreadedTicTacToeGui.Views
         public string R3C1 => GameBoardLabels[6];
         public string R3C2 => GameBoardLabels[7];
         public string R3C3 => GameBoardLabels[8];
+        #endregion
+
+        #region Winning Line Visibilities
+
+        private bool _isR1WinLineVisible = false;
+        public bool IsR1WinLineVisible 
+        {
+            get => _isR1WinLineVisible;
+            set => SetProperty(ref _isR1WinLineVisible, value);
+        }
+        private bool _isR2WinLineVisible = false;
+        public bool IsR2WinLineVisible
+        {
+            get => _isR2WinLineVisible;
+            set => SetProperty(ref _isR2WinLineVisible, value);
+        }
+        private bool _isR3WinLineVisible = false;
+        public bool IsR3WinLineVisible
+        {
+            get => _isR3WinLineVisible;
+            set => SetProperty(ref _isR3WinLineVisible, value);
+        }
+        private bool _isC1WinLineVisible = false;
+        public bool IsC1WinLineVisible
+        {
+            get => _isC1WinLineVisible;
+            set => SetProperty(ref _isC1WinLineVisible, value);
+        }
+        private bool _isC2WinLineVisible = false;
+        public bool IsC2WinLineVisible
+        {
+            get => _isC2WinLineVisible;
+            set => SetProperty(ref _isC2WinLineVisible, value);
+        }
+        private bool _isC3WinLineVisible = false;
+        public bool IsC3WinLineVisible
+        {
+            get => _isC3WinLineVisible;
+            set => SetProperty(ref _isC3WinLineVisible, value);
+        }
+        private bool _isNegativeDiagonalWinLineVisible = false;
+        public bool IsNegativeDiagonalWinLineVisible
+        {
+            get => _isNegativeDiagonalWinLineVisible;
+            set => SetProperty(ref _isNegativeDiagonalWinLineVisible, value);
+        }
+
+        private bool _isPositiveDiagonalWinLineVisible = false;
+        public bool IsPositiveDiagonalWinLineVisible
+        {
+            get => _isPositiveDiagonalWinLineVisible;
+            set => SetProperty(ref _isPositiveDiagonalWinLineVisible, value);
+        }
+
+        #endregion
 
         private bool _isGameRunning = false;
         public bool IsGameRunning
@@ -70,6 +126,7 @@ namespace MultiThreadedTicTacToeGui.Views
             IsGameRunning = true;
 
             InitializeGameBoard();
+            ResetWinningLines();
 
             PlayerType currentPlayer;
             var gameWinState = new GameWinStructure();
@@ -112,16 +169,11 @@ namespace MultiThreadedTicTacToeGui.Views
                 }
 
                 gameWinState = HasGameBeenCompletedCheckState();
-                if(gameWinState.ResultOfGame == GameResult.XWins)
+                if((gameWinState.ResultOfGame == GameResult.XWins) || (gameWinState.ResultOfGame == GameResult.OWins))
                 {
-                    //Need to do x wins stuff here - set the line on top of the winning row or column or diagonal
-                    await Application.Current.MainPage.DisplayAlert("Winner!", $"{PlayerType.X} wins!", "Ok");
+                    SetWinnerLine(gameWinState);
                 }
-                else if (gameWinState.ResultOfGame == GameResult.YWins)
-                {
-                    //Y wins logic
-                    await Application.Current.MainPage.DisplayAlert("Winner!", $"{PlayerType.O} wins!", "Ok");
-                }
+
                 IsGameRunning = (gameWinState.ResultOfGame == GameResult.NoWinYet);
                 
             }
@@ -219,13 +271,18 @@ namespace MultiThreadedTicTacToeGui.Views
         /// <summary>
         /// This method checks if the game has been completed by either a win (by Player X or Player O) or a draw.
         /// </summary>
-        /// <returns>True if the game has been completed (win or draw), otherwise false.</returns>
+        /// <returns>A GameWinStructure object indicating the result of the game.</returns>
         private GameWinStructure HasGameBeenCompletedCheckState()
         {
             var gameWinStructure = new GameWinStructure();
+
             // Helper function to check for a win for a specific player
-            bool CheckWinCondition(PlayerType player)
+            bool CheckWinCondition(PlayerType player, out int? winningRow, out int? winningColumn, out DiagonalType? winningDiagonal)
             {
+                winningRow = null;
+                winningColumn = null;
+                winningDiagonal = null;
+
                 // Initialize counts for rows, columns, and diagonals using KeyValuePair
                 List<KeyValuePair<int, int>> rowCounts = new List<KeyValuePair<int, int>>();
                 List<KeyValuePair<int, int>> colCounts = new List<KeyValuePair<int, int>>();
@@ -263,33 +320,120 @@ namespace MultiThreadedTicTacToeGui.Views
                 foreach (var rowCount in rowCounts)
                 {
                     if (rowCount.Value == 3)
+                    {
+                        winningRow = rowCount.Key;
                         return true;
+                    }
                 }
                 foreach (var colCount in colCounts)
                 {
                     if (colCount.Value == 3)
+                    {
+                        winningColumn = colCount.Key;
                         return true;
+                    }
                 }
-                if (mainDiagonalCount == 3 || antiDiagonalCount == 3)
+                if (mainDiagonalCount == 3)
+                {
+                    winningDiagonal = DiagonalType.NegativeSlopeDiagonal;
                     return true;
+                }
+                if (antiDiagonalCount == 3)
+                {
+                    winningDiagonal = DiagonalType.PositiveSlopeDiagonal;
+                    return true;
+                }
 
                 return false;
             }
 
+            // Variables to store the winning conditions for both players
+            int? xWinningRow = null, oWinningRow = null;
+            int? xWinningColumn = null, oWinningColumn = null;
+            DiagonalType? xWinningDiagonal = null, oWinningDiagonal = null;
+
             // Check for a win condition for both players
-            if(!(CheckWinCondition(PlayerType.X) || CheckWinCondition(PlayerType.O)))
+            bool xWins = CheckWinCondition(PlayerType.X, out xWinningRow, out xWinningColumn, out xWinningDiagonal);
+            bool oWins = CheckWinCondition(PlayerType.O, out oWinningRow, out oWinningColumn, out oWinningDiagonal);
+
+            if (!xWins && !oWins)
             {
                 gameWinStructure.ResultOfGame = GameResult.NoWinYet;
             }
+            else if (xWins)
+            {
+                gameWinStructure.ResultOfGame = GameResult.XWins;
+                gameWinStructure.WinningPlayer = PlayerType.X;
+                gameWinStructure.WinningRowNumber = xWinningRow;
+                gameWinStructure.WinningColumnNumber = xWinningColumn;
+                gameWinStructure.WinningDiagonalType = xWinningDiagonal;
+            }
             else
             {
-                if (CheckWinCondition(PlayerType.X))
-                    gameWinStructure.ResultOfGame = GameResult.XWins;
-                else
-                    gameWinStructure.ResultOfGame = GameResult.YWins;
+                gameWinStructure.ResultOfGame = GameResult.OWins;
+                gameWinStructure.WinningPlayer = PlayerType.O;
+                gameWinStructure.WinningRowNumber = oWinningRow;
+                gameWinStructure.WinningColumnNumber = oWinningColumn;
+                gameWinStructure.WinningDiagonalType = oWinningDiagonal;
             }
+
             return gameWinStructure;
         }
+
+        private void ResetWinningLines()
+        {
+            IsR1WinLineVisible = false;
+            IsR2WinLineVisible = false;
+            IsR3WinLineVisible = false;
+            IsC1WinLineVisible = false;
+            IsC2WinLineVisible = false;
+            IsC3WinLineVisible = false;
+            IsPositiveDiagonalWinLineVisible = false;
+            IsNegativeDiagonalWinLineVisible = false;
+        }
+
+        private void SetWinnerLine(GameWinStructure gameWinStructure)
+        {
+            if(gameWinStructure.WinningRowNumber != null)
+            {
+                switch(gameWinStructure.WinningRowNumber)
+                {
+                    case 1:
+                        IsR1WinLineVisible = true; 
+                        break;
+                    case 2:
+                        IsR2WinLineVisible = true;
+                        break;
+                    case 3:
+                        IsR3WinLineVisible = true;
+                        break;
+                }
+            }
+            else if(gameWinStructure.WinningColumnNumber != null)
+            {
+                switch (gameWinStructure.WinningColumnNumber)
+                {
+                    case 1:
+                        IsC1WinLineVisible = true;
+                        break;
+                    case 2:
+                        IsC2WinLineVisible = true;
+                        break;
+                    case 3:
+                        IsC3WinLineVisible = true;
+                        break;
+                }
+            }
+            else if(gameWinStructure.WinningDiagonalType != null)
+            {
+                if (gameWinStructure.WinningDiagonalType == DiagonalType.PositiveSlopeDiagonal)
+                    IsPositiveDiagonalWinLineVisible = true;
+                else
+                    IsNegativeDiagonalWinLineVisible = true;
+            }
+        }
+
+
     }
 
     public enum PlayerType
@@ -301,7 +445,7 @@ namespace MultiThreadedTicTacToeGui.Views
     public enum GameResult
     {
         XWins = 0,
-        YWins,
+        OWins,
         NoWinYet
     }
 

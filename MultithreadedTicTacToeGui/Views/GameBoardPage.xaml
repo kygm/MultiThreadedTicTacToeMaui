@@ -67,10 +67,82 @@
             
             
         <!-- Winning Lines Definition -->
+
+            <!-- Winning Diagonal Lines-->
+            
+            <BoxView IsVisible="{Binding IsNegativeDiagonalWinLineVisible}" 
+                     Grid.Row="0"
+                     Grid.Column="0"
+                     Grid.RowSpan="5"
+                     Grid.ColumnSpan="5"
+                     Color="Green"
+                     WidthRequest="3"
+                     Rotation="-45" />
+
+            <BoxView IsVisible="{Binding IsPositiveDiagonalWinLineVisible}" 
+                     Grid.Row="0"
+                     Grid.Column="0"
+                     Grid.RowSpan="5"
+                     Grid.ColumnSpan="5"
+                     Color="Green"
+                     WidthRequest="3"
+                     Rotation="45" />
+
+            <!-- Winning Column Lines -->
+
+            <BoxView IsVisible="{Binding IsC1WinLineVisible}" 
+                     Grid.Row="0"
+                     Grid.Column="0"
+                     Grid.RowSpan="5"
+                     Color="Green"
+                     WidthRequest="3"/>
+
+            <BoxView IsVisible="{Binding IsC2WinLineVisible}" 
+                     Grid.Row="0"
+                     Grid.Column="2"
+                     Grid.RowSpan="5"
+                     Color="Green"
+                     WidthRequest="3"/>
+
+            <BoxView IsVisible="{Binding IsC3WinLineVisible}" 
+                     Grid.Row="0"
+                     Grid.Column="4"
+                     Grid.RowSpan="5"
+                     Color="Green"
+                     WidthRequest="3"/>
             
             
+            <!-- Winning Row Lines -->
             
-        <!-- Grid Lines Definition -->
+            <BoxView IsVisible="{Binding IsR1WinLineVisible}" 
+                     Grid.Row="0"
+                     Grid.Column="0"
+                     Grid.ColumnSpan="5"
+                     Color="Green"
+                     VerticalOptions="Center"
+                     HeightRequest="3" />
+
+            <BoxView IsVisible="{Binding IsR2WinLineVisible}" 
+                     Grid.Row="2"
+                     Grid.Column="0"
+                     Grid.ColumnSpan="5"
+                     Color="Green"
+                     VerticalOptions="Center"
+                     HeightRequest="3" />
+
+            <BoxView IsVisible="{Binding IsR3WinLineVisible}" 
+                     Grid.Row="4"
+                     Grid.Column="0"
+                     Grid.ColumnSpan="5"
+                     Color="Green"
+                     VerticalOptions="Center"
+                     HeightRequest="3" />
+
+
+
+
+
+            <!-- Game Board Lines Definition -->
             
             <!-- Horizontal Lines -->
             <BoxView Grid.Row="1"
@@ -96,33 +168,33 @@
 
             <!-- Row 1-->
             <Button Grid.Row="0" Grid.Column="0" Text="{Binding R1C1}" TextColor="Red" 
-                    FontSize="50" Background="White" />
+                    FontSize="50" Background="Transparent" />
 
             <Button Grid.Row="0" Grid.Column="2" Text="{Binding R1C2}" TextColor="Red"  
-                    FontSize="50" Background="White" />
+                    FontSize="50" Background="Transparent" />
 
             <Button Grid.Row="0" Grid.Column="4" Text="{Binding R1C3}" TextColor="Red" 
-                    FontSize="50" Background="White" />
+                    FontSize="50" Background="Transparent" />
             
             <!-- Row 2 -->
             <Button Grid.Row="2" Grid.Column="0" Text="{Binding R2C1}" TextColor="Red" 
-                    FontSize="50" Background="White" />
+                    FontSize="50" Background="Transparent" />
 
             <Button Grid.Row="2" Grid.Column="2" Text="{Binding R2C2}" TextColor="Red" 
-                    FontSize="50" Background="White" />
+                    FontSize="50" Background="Transparent" />
 
             <Button Grid.Row="2" Grid.Column="4" Text="{Binding R2C3}" TextColor="Red" 
-                    FontSize="50" Background="White" />
+                    FontSize="50" Background="Transparent" />
 
             <!-- Row 3 -->
             <Button Grid.Row="4" Grid.Column="0" Text="{Binding R3C1}" TextColor="Red" 
-                    FontSize="50" Background="White" />
+                    FontSize="50" Background="Transparent" />
 
             <Button Grid.Row="4" Grid.Column="2" Text="{Binding R3C2}" TextColor="Red" 
-                    FontSize="50" Background="White" />
+                    FontSize="50" Background="Transparent" />
 
             <Button Grid.Row="4" Grid.Column="4" Text="{Binding R3C3}" TextColor="Red" 
-                    FontSize="50" Background="White" />
+                    FontSize="50" Background="Transparent" />
             
         </Grid>
     </Grid>
