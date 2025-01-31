@@ -1,7 +1,5 @@
-﻿using Microsoft.Maui.Controls.Shapes;
-using MultiThreadedTicTacToeGui.ViewModels;
-using System.Collections.ObjectModel;
-using System.Security.Cryptography.X509Certificates;
+﻿using MultiThreadedTicTacToeGui.ViewModels;
+using System.Threading;
 
 namespace MultiThreadedTicTacToeGui.Views
 {
@@ -14,7 +12,7 @@ namespace MultiThreadedTicTacToeGui.Views
         private List<string> _gameBoardLabels = new List<string>();
         public List<string> GameBoardLabels
         {
-            get => _gameBoardLabels;
+            get => _gameBoardLabels; 
             set => SetProperty(ref _gameBoardLabels, value);
         }
 
@@ -151,8 +149,16 @@ namespace MultiThreadedTicTacToeGui.Views
                 await Task.Delay(DelayBetweenMovesInMilliseconds);
 
                 //Generate a new random position for the subsequent player
-                currentPlayer = GetNextPlayer(currentPlayer);
-                int nextBoardPosition = GetNextAvailablePosition();
+                currentPlayer = GetNextPlayer(currentPlayer);                   //Completely synchronous - no need to multithread
+                int nextBoardPosition = -2;
+                var nextAvailablePositionProcess = new Thread(() =>
+                {
+                    nextBoardPosition = GetNextAvailablePosition();
+                });
+                nextAvailablePositionProcess.Name = "Next available position";
+                nextAvailablePositionProcess.Start();
+                nextAvailablePositionProcess.Join();
+
                 //No more available positions
                 if (nextBoardPosition == -1)
                 {
@@ -162,16 +168,32 @@ namespace MultiThreadedTicTacToeGui.Views
                 }
                 else
                 {
-                    GameBoardLabels[nextBoardPosition] = currentPlayer.ToString();
-                    PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(nextBoardPosition, currentPlayer);
+                    var setGameBoardLabelsThread = new Thread(() =>
+                    {
+                        GameBoardLabels[nextBoardPosition] = currentPlayer.ToString();
+                    });
+                    setGameBoardLabelsThread.Name = "Set game board labels";
 
-                    UpdateRowColumnLabels(); //Need to invoke this for the UI to update
+                    var populatePlayerMatrixThread = new Thread(() =>
+                    {
+                        PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(nextBoardPosition, currentPlayer);
+                    });
+                    populatePlayerMatrixThread.Name = "Populate player matrix";
+
+                    setGameBoardLabelsThread.Start();
+                    populatePlayerMatrixThread.Start();
+
+                    setGameBoardLabelsThread.Join();
+                    populatePlayerMatrixThread.Join();
+
+
+                    UpdateRowColumnLabels(); //Need to invoke this for the UI to update     //Multithread eligible - what if this blocks the UI thread?
                 }
 
                 gameWinState = HasGameBeenCompletedCheckState();
                 if((gameWinState.ResultOfGame == GameResult.XWins) || (gameWinState.ResultOfGame == GameResult.OWins))
                 {
-                    SetWinnerLine(gameWinState);
+                    SetWinnerLine(gameWinState); //Multithread elgibile
                 }
 
                 IsGameRunning = (gameWinState.ResultOfGame == GameResult.NoWinYet);
