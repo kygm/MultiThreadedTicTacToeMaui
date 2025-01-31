@@ -1,13 +1,15 @@
-﻿using MultiThreadedTicTacToeGui.ViewModels;
+﻿using Microsoft.Maui.Controls.Shapes;
+using MultiThreadedTicTacToeGui.ViewModels;
 using System.Collections.ObjectModel;
+using System.Security.Cryptography.X509Certificates;
 
 namespace MultiThreadedTicTacToeGui.Views
 {
     public class GameBoardVM : ViewModelBase
     {
         //WARNING - Beginning index = 1
-        private List<KeyValuePair<PlayerType, KeyValuePair<int, int>>> _populatedPlayerMatrix = new List<KeyValuePair<PlayerType, KeyValuePair<int, int>>>(); 
-        private List<KeyValuePair<int, int>> _openBoardSlots = new List<KeyValuePair<int, int>>(); 
+        private List<KeyValuePair<PlayerType, KeyValuePair<int, int>>> _populatedPlayerMatrix = new List<KeyValuePair<PlayerType, KeyValuePair<int, int>>>();
+        private List<KeyValuePair<int, int>> _openBoardSlots = new List<KeyValuePair<int, int>>();
 
         private List<string> _gameBoardLabels = new List<string>();
         public List<string> GameBoardLabels
@@ -53,7 +55,7 @@ namespace MultiThreadedTicTacToeGui.Views
             GameBoardLabels.Clear();
 
             //Fill open board slots list and board labels list
-            for(int rowIndex = 1; rowIndex <= 3; rowIndex++)
+            for (int rowIndex = 1; rowIndex <= 3; rowIndex++)
             {
                 for (int columnIndex = 1; columnIndex <= 3; columnIndex++)
                 {
@@ -70,6 +72,7 @@ namespace MultiThreadedTicTacToeGui.Views
             InitializeGameBoard();
 
             PlayerType currentPlayer;
+            var gameWinState = new GameWinStructure();
 
             //First select a randomNumberGenerator player - X or O
             var randomNumberGenerator = new Random();
@@ -83,7 +86,7 @@ namespace MultiThreadedTicTacToeGui.Views
             PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(initialPosition, currentPlayer);
             UpdateRowColumnLabels();
 
-            
+
 
             //Main game loop - do threading in here
             while (IsGameRunning)
@@ -94,7 +97,7 @@ namespace MultiThreadedTicTacToeGui.Views
                 currentPlayer = GetNextPlayer(currentPlayer);
                 int nextBoardPosition = GetNextAvailablePosition();
                 //No more available positions
-                if(nextBoardPosition == -1)
+                if (nextBoardPosition == -1)
                 {
                     IsGameRunning = false;
                     await Application.Current.MainPage.DisplayAlert("Notice", "No remaining board slots available", "Ok");
@@ -108,7 +111,19 @@ namespace MultiThreadedTicTacToeGui.Views
                     UpdateRowColumnLabels(); //Need to invoke this for the UI to update
                 }
 
-                IsGameRunning = !HasGameBeenCompletedCheckState();
+                gameWinState = HasGameBeenCompletedCheckState();
+                if(gameWinState.ResultOfGame == GameResult.XWins)
+                {
+                    //Need to do x wins stuff here - set the line on top of the winning row or column or diagonal
+                    await Application.Current.MainPage.DisplayAlert("Winner!", $"{PlayerType.X} wins!", "Ok");
+                }
+                else if (gameWinState.ResultOfGame == GameResult.YWins)
+                {
+                    //Y wins logic
+                    await Application.Current.MainPage.DisplayAlert("Winner!", $"{PlayerType.O} wins!", "Ok");
+                }
+                IsGameRunning = (gameWinState.ResultOfGame == GameResult.NoWinYet);
+                
             }
 
         }
@@ -118,7 +133,7 @@ namespace MultiThreadedTicTacToeGui.Views
             DelayBetweenMovesInMilliseconds = newDelayValue;
         }
 
-        private void PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(int nextBoardPosition, PlayerType currentPlayer )
+        private void PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(int nextBoardPosition, PlayerType currentPlayer)
         {
             _populatedPlayerMatrix.Add(new KeyValuePair<PlayerType, KeyValuePair<int, int>>
                 (currentPlayer, GetMatrixPositionFromFlattenedBoardMatrixIndex(nextBoardPosition)));
@@ -148,7 +163,7 @@ namespace MultiThreadedTicTacToeGui.Views
         {
             var randomNumberGenerator = new Random();
             int computedNextPosition = -1;
-            while(_openBoardSlots.Count() != 0)
+            while (_openBoardSlots.Count() != 0)
             {
                 computedNextPosition = randomNumberGenerator.Next(0, 9);
                 var flattenedBoardMatrix = FlattenBoardMatrix();
@@ -169,7 +184,7 @@ namespace MultiThreadedTicTacToeGui.Views
         private List<int> FlattenBoardMatrix()
         {
             var flattenedBoardMatrix = new List<int>();
-            foreach(var kvp in _populatedPlayerMatrix)//this should be _occupied board slots_ check
+            foreach (var kvp in _populatedPlayerMatrix)//this should be _occupied board slots_ check
             {
                 switch (kvp.Value.Key)
                 {
@@ -202,14 +217,78 @@ namespace MultiThreadedTicTacToeGui.Views
         }
 
         /// <summary>
-        /// This method should return the state of the game - when the game completes due to a draw, a win 
-        /// by X, or a win by O, true should be returned
+        /// This method checks if the game has been completed by either a win (by Player X or Player O) or a draw.
         /// </summary>
-        /// <returns>State of the game - whether it's been completed or not</returns>
-        private bool HasGameBeenCompletedCheckState()
+        /// <returns>True if the game has been completed (win or draw), otherwise false.</returns>
+        private GameWinStructure HasGameBeenCompletedCheckState()
         {
-            //Perform logic here to determine wheter a winning condition is present in the PopulatedPlayerMatrix collection
-            return false;
+            var gameWinStructure = new GameWinStructure();
+            // Helper function to check for a win for a specific player
+            bool CheckWinCondition(PlayerType player)
+            {
+                // Initialize counts for rows, columns, and diagonals using KeyValuePair
+                List<KeyValuePair<int, int>> rowCounts = new List<KeyValuePair<int, int>>();
+                List<KeyValuePair<int, int>> colCounts = new List<KeyValuePair<int, int>>();
+                int mainDiagonalCount = 0;
+                int antiDiagonalCount = 0;
+
+                for (int i = 1; i <= 3; i++)
+                {
+                    rowCounts.Add(new KeyValuePair<int, int>(i, 0));
+                    colCounts.Add(new KeyValuePair<int, int>(i, 0));
+                }
+
+                foreach (var kvp in _populatedPlayerMatrix)
+                {
+                    if (kvp.Key != player)
+                        continue;
+
+                    int row = kvp.Value.Key;
+                    int col = kvp.Value.Value;
+
+                    // Increment the counts for rows and columns
+                    rowCounts[row - 1] = new KeyValuePair<int, int>(row, rowCounts[row - 1].Value + 1);
+                    colCounts[col - 1] = new KeyValuePair<int, int>(col, colCounts[col - 1].Value + 1);
+
+                    // Check main diagonal (top-left to bottom-right)
+                    if (row == col)
+                        mainDiagonalCount++;
+
+                    // Check anti-diagonal (top-right to bottom-left)
+                    if (row + col == 4) // Since row and col are 1-indexed
+                        antiDiagonalCount++;
+                }
+
+                // Check if any row, column, or diagonal count equals 3
+                foreach (var rowCount in rowCounts)
+                {
+                    if (rowCount.Value == 3)
+                        return true;
+                }
+                foreach (var colCount in colCounts)
+                {
+                    if (colCount.Value == 3)
+                        return true;
+                }
+                if (mainDiagonalCount == 3 || antiDiagonalCount == 3)
+                    return true;
+
+                return false;
+            }
+
+            // Check for a win condition for both players
+            if(!(CheckWinCondition(PlayerType.X) || CheckWinCondition(PlayerType.O)))
+            {
+                gameWinStructure.ResultOfGame = GameResult.NoWinYet;
+            }
+            else
+            {
+                if (CheckWinCondition(PlayerType.X))
+                    gameWinStructure.ResultOfGame = GameResult.XWins;
+                else
+                    gameWinStructure.ResultOfGame = GameResult.YWins;
+            }
+            return gameWinStructure;
         }
     }
 
@@ -217,5 +296,27 @@ namespace MultiThreadedTicTacToeGui.Views
     {
         X = 0,
         O = 1
+    }
+
+    public enum GameResult
+    {
+        XWins = 0,
+        YWins,
+        NoWinYet
+    }
+
+    public enum DiagonalType
+    {
+        PositiveSlopeDiagonal = 0,
+        NegativeSlopeDiagonal
+    }
+
+    public class GameWinStructure
+    {
+        public GameResult ResultOfGame { get; set; }
+        public PlayerType WinningPlayer { get; set; }
+        public int? WinningRowNumber { get; set; }
+        public int? WinningColumnNumber { get; set; }
+        public DiagonalType? WinningDiagonalType { get; set; }
     }
 }
