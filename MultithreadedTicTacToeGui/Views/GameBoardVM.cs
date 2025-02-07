@@ -96,6 +96,8 @@ namespace MultiThreadedTicTacToeGui.Views
             set => SetProperty(ref _delayBetweenMovesInMilliseconds, value);
         }
 
+        public static Mutex mutex = new Mutex();
+
 
         public GameBoardVM()
         {
@@ -117,6 +119,8 @@ namespace MultiThreadedTicTacToeGui.Views
                     GameBoardLabels.Add("");
                 }
             }
+
+            ResetWinningLines();
         }
 
         public async Task StartGame()
@@ -124,7 +128,6 @@ namespace MultiThreadedTicTacToeGui.Views
             IsGameRunning = true;
 
             InitializeGameBoard();
-            ResetWinningLines();
 
             PlayerType currentPlayer;
             var gameWinState = new GameWinStructure();
@@ -178,6 +181,7 @@ namespace MultiThreadedTicTacToeGui.Views
                     {
                         PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(nextBoardPosition, currentPlayer);
                     });
+
                     populatePlayerMatrixThread.Name = "Populate player matrix";
 
                     setGameBoardLabelsThread.Start();
@@ -209,10 +213,23 @@ namespace MultiThreadedTicTacToeGui.Views
 
         private void PopulatePlayerMatrixFromFlattenedBoardMatrixIndex(int nextBoardPosition, PlayerType currentPlayer)
         {
-            _populatedPlayerMatrix.Add(new KeyValuePair<PlayerType, KeyValuePair<int, int>>
+            try
+            {
+                mutex.WaitOne();
+
+                _populatedPlayerMatrix.Add(new KeyValuePair<PlayerType, KeyValuePair<int, int>>
                 (currentPlayer, GetMatrixPositionFromFlattenedBoardMatrixIndex(nextBoardPosition)));
 
-            _openBoardSlots.Remove(GetMatrixPositionFromFlattenedBoardMatrixIndex(nextBoardPosition));
+                _openBoardSlots.Remove(GetMatrixPositionFromFlattenedBoardMatrixIndex(nextBoardPosition));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"A threading error occurred - {e.Message}");
+            }
+            finally
+            {
+                mutex.ReleaseMutex();
+            }
         }
 
         public void UpdateRowColumnLabels()
